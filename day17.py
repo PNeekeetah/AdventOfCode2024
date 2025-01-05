@@ -335,3 +335,5 @@ print(list(filter(lambda x : x != None,[int(num) for num in convolve(numbers, [1
 
 ### It took me 5 hours 42 overall. Another 4 hours 42 spent to NOT find a solution :)
 ### Extra 1 hour and 4 spent today <3 no solution still
+### I think I spent an extra 7-8 hours on this one to solve it (passively tried other ideas until I came up with the right one)
+### Overall, I spent likely around 14-15 hours to solve this one

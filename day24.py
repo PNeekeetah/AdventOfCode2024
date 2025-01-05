@@ -287,3 +287,74 @@ hbw = x01 XOR y01
 """
 
 # 2 hours 19 m and counting. God damnit :)
+# + 1 h 18
+# + an extra 2 h 35
+# I think it took me about 6 or 7 hours overall to solve this one. The logic is fairly convoluted as well
+# but I'll do my best to explain it:
+
+"""
+
+For the first part, I've noticed that every Z is a binary tree. I've written a recursive traversal 
+algorithm to find the result of every Z bit.
+
+For part 2, here is some of the key insight which helped me:
+
+1. Since this is supposed to be a binary adder, I can design a correct adder and compare it against that
+2. The wrong bits are the XOR of the correct adder and the "wrong" adder
+3. The design of the adder used in this problem seems to be a "Carry Lookahead Adder" which means that subsequent Z levels
+    build upon precedent levels
+4. We can get the wrong bits by using 2 , setting both operands as 0, and then sweeping the bits of X operand in turn and setting them to 1.
+    As an example, set X as [0,0,0,0], then do [1,0,0,0], [0,1,0,0] ... [0,0,0,1].
+    Keep in mind that the left side is the MSB and that the right side is the LSB
+    
+Knowing these, we can use 4 and 3 as follows:
+
+    Sweep X from its LSB to its MSB
+    When the output is wrong, get the difference of gates between the last correct Z and the Z gate.
+    
+For example, if Z05, Z06 appear to be wrong, we will output the gates of Z05 - gates of Z04 ( last correct gate) AND
+                                                                gates of Z06 - gates of Z05 
+  
+Overall, I had 8 such wrong gates. 
+
+We now have all the "potentially" wrong gates. 
+
+Take every 2 gates and swap them .  Use 2) again to determine whether the number of wrong bits has gone down. 
+At the first stage, we have 8 wrong bits.
+At the second stage, we ought to have 6 wrong bits.
+Third -> 4 wrong bits
+Fourth -> 2 wrong bits
+Fifth -> 0 wrong bits
+
+We find all possible candidates which reduce our wrong gates to 6 between the first stage and the second one.
+
+We then have 1 pair which we assume to be correct and then we try swapping 2 other pairs .
+
+For example, assume we have a, b, c, d, e, z0, z3 as ALL our possible wrong gates.
+
+We find that swapping (a,b) produces less wrong outputs. 
+
+Carrying on from there, we only consider gates other than (a,b).
+
+When we reach the fifth stage, we will likely have many possible pairs of gates which produce the correct outputs
+by sweeping X from the LSB to the MSB.
+
+To assert that the pairs are correct, we perform all the swaps at the fifth stage for all possible results and then
+we double check by generatig some pseudo-random X and Y. If the results are correct every time, it means we have found
+our pairs of gates which have been swapped. 
+
+Sort and join by ',' to get the result. In my case, the fifth stage had the following outputs
+{(('dhg', 'jvk'), ('dpd', 'z11'), ('hvf', 'z38'), ('vcn', 'z23')), (('dpd', 'wjj'), ('frf', 'nvf'), ('hvf', 'z38'), ('vcn', 'z23')), (('bhd', 'z23'), ('dhg', 'z06'), ('dpd', 'wjj'), ('nbf', 'z38')), (('brk', 'dpd'), ('dfg', 'z38'), ('dhg', 'jvk'), ('vcn', 'z23')), (('cwp', 'dpd'), ('frf', 'nvf'), ('hvf', 'z38'), ('vcn', 'z23')), (('dhg', 'nvf'), ('dpd', 'z11'), ('hvf', 'z38'), ('vcn', 'z23')), (('brk', 'dpd'), ('dfg', 'z38'), ('frf', 'nvf'), ('vcn', 'z23')), (('cwp', 'dpd'), ('frf', 'nvf'), ('nbf', 'z38'), ('vcn', 'z23')), (('bhd', 'z23'), ('dfg', 'z38'), ('dpd', 'dqp'), ('frf', 'nvf')), (('dfg', 'z38'), ('dhg', 'z06'), ('dpd', 'dqp'), ('vcn', 'z23')), (('bhd', 'z23'), ('cwp', 'dpd'), ('frf', 'nvf'), ('hvf', 'z38')), (('dhg', 'nvf'), ('dpd', 'z11'), ('nbf', 'z38'), ('vcn', 'z23')), (('brk', 'dpd'), ('dhg', 'z06'), ('hvf', 'z38'), ('vcn', 'z23')), (('bhd', 'z23'), ('dhg', 'jvk'), ('dpd', 'wjj'), ('hvf', 'z38')), (('bhd', 'z23'), ('cwp', 'dpd'), ('dhg', 'nvf'), ('nbf', 'z38')), (('cwp', 'dpd'), ('dfg', 'z38'), ('dhg', 'jvk'), ('vcn', 'z23')), (('cwp', 'dpd'), ('dfg', 'z38'), ('dhg', 'z06'), ('vcn', 'z23')), (('bhd', 'z23'), ('cwp', 'dpd'), ('dfg', 'z38'), ('dhg', 'nvf')), (('bhd', 'z23'), ('brk', 'dpd'), ('dfg', 'z38'), ('dhg', 'z06')), (('bhd', 'z23'), ('dfg', 'z38'), ('dpd', 'wjj'), ('frf', 'nvf')), (('dfg', 'z38'), ('dhg', 'z06'), ('dpd', 'wjj'), ('vcn', 'z23')), (('bhd', 'z23'), ('frf', 'nvf'), ('hvf', 'z38'), ('krq', 'z11')), (('bhd', 'z23'), ('dhg', 'z06'), ('krq', 'z11'), ('nbf', 'z38')), (('cwp', 'dpd'), ('dfg', 'z38'), ('frf', 'nvf'), ('vcn', 'z23')), (('bhd', 'z23'), ('brk', 'dpd'), ('dhg', 'jvk'), ('hvf', 'z38')), (('bhd', 'z23'), ('brk', 'dpd'), ('dhg', 'z06'), ('hvf', 'z38')), (('bhd', 'z23'), ('dhg', 'nvf'), ('hvf', 'z38'), ('krq', 'z11')), (('bhd', 'z23'), ('brk', 'dpd'), ('dfg', 'z38'), ('frf', 'nvf')), (('dpd', 'dqp'), ('frf', 'nvf'), ('nbf', 'z38'), ('vcn', 'z23')), (('bhd', 'z23'), ('brk', 'dpd'), ('dhg', 'nvf'), ('nbf', 'z38')), (('bhd', 'z23'), ('dpd', 'wjj'), ('frf', 'nvf'), ('hvf', 'z38')), (('cwp', 'dpd'), ('dhg', 'nvf'), ('hvf', 'z38'), ('vcn', 'z23')), (('bhd', 'z23'), ('brk', 'dpd'), ('frf', 'nvf'), ('hvf', 'z38')), (('brk', 'dpd'), ('dfg', 'z38'), ('dhg', 'z06'), ('vcn', 'z23')), (('brk', 'dpd'), ('dhg', 'jvk'), ('nbf', 'z38'), ('vcn', 'z23')), (('bhd', 'z23'), ('cwp', 'dpd'), ('dfg', 'z38'), ('dhg', 'z06')), (('cwp', 'dpd'), ('dhg', 'nvf'), ('nbf', 'z38'), ('vcn', 'z23')), (('brk', 'dpd'), ('dfg', 'z38'), ('dhg', 'nvf'), ('vcn', 'z23')), (('bhd', 'z23'), ('dpd', 'dqp'), ('frf', 'nvf'), ('hvf', 'z38')), (('bhd', 'z23'), ('dfg', 'z38'), ('dpd', 'z11'), ('frf', 'nvf')), (('dfg', 'z38'), ('dhg', 'z06'), ('krq', 'z11'), ('vcn', 'z23')), (('bhd', 'z23'), ('frf', 'nvf'), ('krq', 'z11'), ('nbf', 'z38')), (('dfg', 'z38'), ('dhg', 'z06'), ('dpd', 'z11'), ('vcn', 'z23')), (('bhd', 'z23'), ('dhg', 'jvk'), ('dpd', 'dqp'), ('nbf', 'z38')), (('bhd', 'z23'), ('cwp', 'dpd'), ('dhg', 'jvk'), ('hvf', 'z38')), (('bhd', 'z23'), ('cwp', 'dpd'), ('dhg', 'z06'), ('hvf', 'z38')), (('bhd', 'z23'), ('cwp', 'dpd'), ('dfg', 'z38'), ('frf', 'nvf')), (('bhd', 'z23'), ('dhg', 'nvf'), ('dpd', 'z11'), ('hvf', 'z38')), (('bhd', 'z23'), ('dhg', 'jvk'), ('dpd', 'wjj'), ('nbf', 'z38')), (('dhg', 'nvf'), ('krq', 'z11'), ('nbf', 'z38'), ('vcn', 'z23')), (('frf', 'nvf'), ('krq', 'z11'), ('nbf', 'z38'), ('vcn', 'z23')), (('dhg', 'z06'), ('dpd', 'dqp'), ('nbf', 'z38'), ('vcn', 'z23')), (('cwp', 'dpd'), ('dhg', 'z06'), ('nbf', 'z38'), ('vcn', 'z23')), (('bhd', 'z23'), ('dhg', 'nvf'), ('dpd', 'dqp'), ('nbf', 'z38')), (('dhg', 'nvf'), ('dpd', 'dqp'), ('hvf', 'z38'), ('vcn', 'z23')), (('bhd', 'z23'), ('dhg', 'nvf'), ('dpd', 'wjj'), ('hvf', 'z38')), (('dfg', 'z38'), ('dhg', 'jvk'), ('dpd', 'dqp'), ('vcn', 'z23')), (('cwp', 'dpd'), ('dfg', 'z38'), ('dhg', 'nvf'), ('vcn', 'z23')), (('dpd', 'dqp'), ('frf', 'nvf'), ('hvf', 'z38'), ('vcn', 'z23')), (('brk', 'dpd'), ('dhg', 'jvk'), ('hvf', 'z38'), ('vcn', 'z23')), (('dfg', 'z38'), ('dpd', 'dqp'), ('frf', 'nvf'), ('vcn', 'z23')), (('bhd', 'z23'), ('dhg', 'z06'), ('dpd', 'z11'), ('nbf', 'z38')), (('dhg', 'nvf'), ('dpd', 'dqp'), ('nbf', 'z38'), ('vcn', 'z23')), (('bhd', 'z23'), ('dpd', 'wjj'), ('frf', 'nvf'), ('nbf', 'z38')), (('dhg', 'nvf'), ('dpd', 'wjj'), ('nbf', 'z38'), ('vcn', 'z23')), (('frf', 'nvf'), ('hvf', 'z38'), ('krq', 'z11'), ('vcn', 'z23')), (('dhg', 'jvk'), ('dpd', 'dqp'), ('nbf', 'z38'), ('vcn', 'z23')), (('bhd', 'z23'), ('dfg', 'z38'), ('dhg', 'z06'), ('krq', 'z11')), (('dfg', 'z38'), ('dhg', 'jvk'), ('dpd', 'wjj'), ('vcn', 'z23')), (('bhd', 'z23'), ('dfg', 'z38'), ('dhg', 'nvf'), ('krq', 'z11')), (('bhd', 'z23'), ('brk', 'dpd'), ('frf', 'nvf'), ('nbf', 'z38')), (('bhd', 'z23'), ('dhg', 'z06'), ('dpd', 'dqp'), ('hvf', 'z38')), (('bhd', 'z23'), ('dfg', 'z38'), ('dhg', 'z06'), ('dpd', 'wjj')), (('bhd', 'z23'), ('dhg', 'jvk'), ('krq', 'z11'), ('nbf', 'z38')), (('dfg', 'z38'), ('dhg', 'nvf'), ('dpd', 'dqp'), ('vcn', 'z23')), (('bhd', 'z23'), ('dfg', 'z38'), ('frf', 'nvf'), ('krq', 'z11')), (('bhd', 'z23'), ('dpd', 'dqp'), ('frf', 'nvf'), ('nbf', 'z38')), (('bhd', 'z23'), ('dhg', 'z06'), ('dpd', 'wjj'), ('hvf', 'z38')), (('bhd', 'z23'), ('dpd', 'z11'), ('frf', 'nvf'), ('hvf', 'z38')), (('bhd', 'z23'), ('dhg', 'z06'), ('hvf', 'z38'), ('krq', 'z11')), (('bhd', 'z23'), ('cwp', 'dpd'), ('dhg', 'z06'), ('nbf', 'z38')), (('bhd', 'z23'), ('dfg', 'z38'), ('dhg', 'jvk'), ('dpd', 'dqp')), (('bhd', 'z23'), ('dfg', 'z38'), ('dhg', 'z06'), ('dpd', 'dqp')), (('dfg', 'z38'), ('dpd', 'wjj'), ('frf', 'nvf'), ('vcn', 'z23')), (('dpd', 'z11'), ('frf', 'nvf'), ('nbf', 'z38'), ('vcn', 'z23')), (('bhd', 'z23'), ('dfg', 'z38'), ('dhg', 'nvf'), ('dpd', 'dqp')), (('bhd', 'z23'), ('dhg', 'jvk'), ('dpd', 'z11'), ('hvf', 'z38')), (('dhg', 'z06'), ('dpd', 'dqp'), ('hvf', 'z38'), ('vcn', 'z23')), (('dhg', 'z06'), ('hvf', 'z38'), ('krq', 'z11'), ('vcn', 'z23')), (('dfg', 'z38'), ('dhg', 'jvk'), ('krq', 'z11'), ('vcn', 'z23')), (('bhd', 'z23'), ('cwp', 'dpd'), ('frf', 'nvf'), ('nbf', 'z38')), (('bhd', 'z23'), ('cwp', 'dpd'), ('dhg', 'nvf'), ('hvf', 'z38')), (('brk', 'dpd'), ('dhg', 'nvf'), ('nbf', 'z38'), ('vcn', 'z23')), (('dhg', 'nvf'), ('hvf', 'z38'), ('krq', 'z11'), ('vcn', 'z23')), (('dhg', 'z06'), ('dpd', 'wjj'), ('nbf', 'z38'), ('vcn', 'z23')), (('bhd', 'z23'), ('dhg', 'nvf'), ('dpd', 'wjj'), ('nbf', 'z38')), (('brk', 'dpd'), ('frf', 'nvf'), ('hvf', 'z38'), ('vcn', 'z23')), (('bhd', 'z23'), ('brk', 'dpd'), ('dhg', 'jvk'), ('nbf', 'z38')), (('bhd', 'z23'), ('brk', 'dpd'), ('dhg', 'z06'), ('nbf', 'z38')), (('bhd', 'z23'), ('brk', 'dpd'), ('dhg', 'nvf'), ('hvf', 'z38')), (('bhd', 'z23'), ('dfg', 'z38'), ('dhg', 'jvk'), ('krq', 'z11')), (('brk', 'dpd'), ('frf', 'nvf'), ('nbf', 'z38'), ('vcn', 'z23')), (('dfg', 'z38'), ('frf', 'nvf'), ('krq', 'z11'), ('vcn', 'z23')), (('bhd', 'z23'), ('dfg', 'z38'), ('dhg', 'jvk'), ('dpd', 'wjj')), (('bhd', 'z23'), ('dfg', 'z38'), ('dhg', 'nvf'), ('dpd', 'wjj')), (('dfg', 'z38'), ('dhg', 'nvf'), ('dpd', 'wjj'), ('vcn', 'z23')), (('bhd', 'z23'), ('dpd', 'z11'), ('frf', 'nvf'), ('nbf', 'z38')), (('dpd', 'z11'), ('frf', 'nvf'), ('hvf', 'z38'), ('vcn', 'z23')), (('bhd', 'z23'), ('dhg', 'nvf'), ('krq', 'z11'), ('nbf', 'z38')), (('dhg', 'jvk'), ('dpd', 'z11'), ('nbf', 'z38'), ('vcn', 'z23')), (('bhd', 'z23'), ('dhg', 'jvk'), ('dpd', 'dqp'), ('hvf', 'z38')), (('dpd', 'wjj'), ('frf', 'nvf'), ('nbf', 'z38'), ('vcn', 'z23')), (('cwp', 'dpd'), ('dhg', 'z06'), ('hvf', 'z38'), ('vcn', 'z23')), (('bhd', 'z23'), ('cwp', 'dpd'), ('dhg', 'jvk'), ('nbf', 'z38')), (('bhd', 'z23'), ('dhg', 'jvk'), ('dpd', 'z11'), ('nbf', 'z38')), (('bhd', 'z23'), ('dhg', 'nvf'), ('dpd', 'z11'), ('nbf', 'z38')), (('brk', 'dpd'), ('dhg', 'nvf'), ('hvf', 'z38'), ('vcn', 'z23')), (('dhg', 'jvk'), ('krq', 'z11'), ('nbf', 'z38'), ('vcn', 'z23')), (('dhg', 'z06'), ('dpd', 'wjj'), ('hvf', 'z38'), ('vcn', 'z23')), (('bhd', 'z23'), ('cwp', 'dpd'), ('dfg', 'z38'), ('dhg', 'jvk')), (('bhd', 'z23'), ('dhg', 'nvf'), ('dpd', 'dqp'), ('hvf', 'z38')), (('dfg', 'z38'), ('dpd', 'z11'), ('frf', 'nvf'), ('vcn', 'z23')), (('dhg', 'nvf'), ('dpd', 'wjj'), ('hvf', 'z38'), ('vcn', 'z23')), (('brk', 'dpd'), ('dhg', 'z06'), ('nbf', 'z38'), ('vcn', 'z23')), (('dhg', 'jvk'), ('dpd', 'dqp'), ('hvf', 'z38'), ('vcn', 'z23')), (('bhd', 'z23'), ('dhg', 'jvk'), ('hvf', 'z38'), ('krq', 'z11')), (('dhg', 'jvk'), ('dpd', 'wjj'), ('hvf', 'z38'), ('vcn', 'z23')), (('dfg', 'z38'), ('dhg', 'nvf'), ('krq', 'z11'), ('vcn', 'z23')), (('cwp', 'dpd'), ('dhg', 'jvk'), ('hvf', 'z38'), ('vcn', 'z23')), (('dhg', 'z06'), ('dpd', 'z11'), ('hvf', 'z38'), ('vcn', 'z23')), (('dhg', 'z06'), ('krq', 'z11'), ('nbf', 'z38'), ('vcn', 'z23')), (('dhg', 'jvk'), ('hvf', 'z38'), ('krq', 'z11'), ('vcn', 'z23')), (('bhd', 'z23'), ('dhg', 'z06'), ('dpd', 'z11'), ('hvf', 'z38')), (('dfg', 'z38'), ('dhg', 'jvk'), ('dpd', 'z11'), ('vcn', 'z23')), (('dhg', 'jvk'), ('dpd', 'wjj'), ('nbf', 'z38'), ('vcn', 'z23')), (('dfg', 'z38'), ('dhg', 'nvf'), ('dpd', 'z11'), ('vcn', 'z23')), (('cwp', 'dpd'), ('dhg', 'jvk'), ('nbf', 'z38'), ('vcn', 'z23')), (('dhg', 'z06'), ('dpd', 'z11'), ('nbf', 'z38'), ('vcn', 'z23')), (('bhd', 'z23'), ('dfg', 'z38'), ('dhg', 'jvk'), ('dpd', 'z11')), (('bhd', 'z23'), ('dfg', 'z38'), ('dhg', 'z06'), ('dpd', 'z11')), (('bhd', 'z23'), ('dhg', 'z06'), ('dpd', 'dqp'), ('nbf', 'z38')), (('bhd', 'z23'), ('dfg', 'z38'), ('dhg', 'nvf'), ('dpd', 'z11')), (('bhd', 'z23'), ('brk', 'dpd'), ('dfg', 'z38'), ('dhg', 'nvf')), (('bhd', 'z23'), ('brk', 'dpd'), ('dfg', 'z38'), ('dhg', 'jvk'))}
+
+But only these swaps yielded a correct adder
+
+('bhd', 'z23')
+('brk', 'dpd')
+('dhg', 'z06')
+('nbf', 'z38')
+
+
+
+
+
+"""
